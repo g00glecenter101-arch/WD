@@ -1,21 +1,21 @@
-package config
+package main
 
 import (
-	"os"
+	"log"
+
+	"drainer/internal/config"
+	"drainer/internal/router"
+	"drainer/internal/service"
 )
 
-type Config struct {
-	Port string
-	// other config fields...
-}
+func main() {
+	cfg := config.Load()
 
-func Load() *Config {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // default fallback
-	}
+	banSvc := service.NewBanService()
+	tgSvc := service.NewTelegramService(cfg)
 
-	return &Config{
-		Port: port,
-	}
+	r := router.New(cfg, banSvc, tgSvc)
+
+	log.Printf("Serveur démarré sur le port %s", cfg.Port)
+	log.Fatal(r.Run(":" + cfg.Port))
 }
